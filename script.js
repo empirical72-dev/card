@@ -1,122 +1,130 @@
-let participants = [];
-let items = [];
-let matches = [];
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
 
-function addParticipant() {
+// Firebase 프로젝트 설정 (본인 프로젝트 값으로 교체)
+const firebaseConfig = {
+  apiKey: "AIzaSyAi9Rfv4Erq0bVd46aVLqQqSyF0EdFglVQ",
+  authDomain: "card-game-cec92.firebaseapp.com",
+  databaseURL: "https://card-game-cec92-default-rtdb.firebaseio.com",
+  projectId: "card-game-cec92",
+  storageBucket: "card-game-cec92.firebasestorage.app",
+  messagingSenderId: "20914790996",
+  appId: "1:20914790996:web:1a3962d2402d5c5d2c83c1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// 참가자 추가 → DB 저장
+window.addParticipant = function() {
   const input = document.getElementById("participant-input");
   const name = input.value.trim();
   if (!name) return;
-  participants.push(name);
+  push(ref(db, "participants"), { name });
   input.value = "";
-  renderParticipants();
-}
+};
 
-function renderParticipants() {
-  const container = document.getElementById("participants-container");
-  container.innerHTML = "";
-  participants.forEach((p, i) => {
-    const div = document.createElement("div");
-    div.className = "list-item";
-    div.innerHTML = `${p} <button class="delete-btn" onclick="removeParticipant(${i})">X</button>`;
-    container.appendChild(div);
-  });
-}
-
-function removeParticipant(index) {
-  participants.splice(index, 1);
-  renderParticipants();
-}
-
-function addItem() {
+// 항목 추가 → DB 저장
+window.addItem = function() {
   const input = document.getElementById("item-input");
   const countInput = document.getElementById("item-count");
   const name = input.value.trim();
   const count = parseInt(countInput.value);
   if (!name || count < 1) return;
-  for (let i = 0; i < count; i++) {
-    items.push(name);
-  }
+  let items = [];
+  for (let i = 0; i < count; i++) items.push(name);
+  set(ref(db, "items"), items);
   input.value = "";
   countInput.value = 1;
-  renderItems();
-}
+};
 
-function renderItems() {
+// 전체 리셋
+window.resetAll = function() {
+  set(ref(db, "participants"), null);
+  set(ref(db, "items"), null);
+  set(ref(db, "results"), null);
+};
+
+// Admin 실행 → 결과 저장
+window.shuffleAndMatch = function() {
+  onValue(ref(db, "participants"), snapshot => {
+    const participantsData = snapshot.val();
+    if (!participantsData) return;
+    const participants = Object.values(participantsData).map(p => p.name);
+
+    onValue(ref(db, "items"), snapshot2 => {
+      const itemsData = snapshot2.val();
+      if (!itemsData) return;
+      const shuffled = [...itemsData];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      const results = participants.map((p, i) => ({
+        participant: p,
+        item: shuffled[i % shuffled.length]
+      }));
+      set(ref(db, "results"), results);
+    }, { onlyOnce: true });
+  }, { onlyOnce: true });
+};
+
+// 참가자 목록 실시간 반영
+onValue(ref(db, "participants"), snapshot => {
+  const data = snapshot.val();
+  const container = document.getElementById("participants-container");
+  container.innerHTML = "";
+  if (data) {
+    Object.values(data).forEach(p => {
+      const div = document.createElement("div");
+      div.className = "list-item";
+      div.textContent = p.name;
+      container.appendChild(div);
+    });
+  }
+});
+
+// 항목 목록 실시간 반영
+onValue(ref(db, "items"), snapshot => {
+  const data = snapshot.val();
   const container = document.getElementById("items-container");
   container.innerHTML = "";
-  items.forEach((item, i) => {
-    const div = document.createElement("div");
-    div.className = "list-item";
-    div.innerHTML = `${item} <button class="delete-btn" onclick="removeItem(${i})">X</button>`;
-    container.appendChild(div);
-  });
-}
-
-function removeItem(index) {
-  items.splice(index, 1);
-  renderItems();
-}
-
-function resetAll() {
-  participants = [];
-  items = [];
-  matches = [];
-  document.getElementById("participants-container").innerHTML = "";
-  document.getElementById("items-container").innerHTML = "";
-  document.getElementById("cards-container").innerHTML = "";
-  document.querySelector("#result-table tbody").innerHTML = "";
-}
-
-function shuffleAndMatch() {
-  if (participants.length === 0 || items.length === 0) return;
-
-  // 항목 섞기
-  const shuffled = [...items];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-
-  // 참가자와 항목 매칭
-  matches = participants.map((p, i) => ({
-    participant: p,
-    item: shuffled[i % shuffled.length]
-  }));
-
-  const cardsContainer = document.getElementById("cards-container");
-  cardsContainer.innerHTML = "";
-  document.querySelector("#result-table tbody").innerHTML = "";
-
-  matches.forEach((match) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-inner">
-        <!-- 뒷면: 트럼프 무늬 + 참가자 이름 -->
-        <div class="card-back">
-          <div style="background:rgba(0,0,0,0.5); padding:5px; border-radius:6px;">
-            ${match.participant}
-          </div>
-        </div>
-        <!-- 앞면: 참가자 이름 + 항목 -->
-        <div class="card-front">
-          ${match.participant} → ${match.item}
-        </div>
-      </div>
-    `;
-    card.addEventListener("click", () => {
-      if (!card.classList.contains("flipped")) {
-        card.classList.add("flipped");
-        addResultRow(match.participant, match.item);
-      }
+  if (data) {
+    data.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "list-item";
+      div.textContent = item;
+      container.appendChild(div);
     });
-    cardsContainer.appendChild(card);
-  });
-}
+  }
+});
 
-function addResultRow(participant, item) {
+// 결과 실시간 반영 → 카드 생성
+onValue(ref(db, "results"), snapshot => {
+  const data = snapshot.val();
+  const cardsContainer = document.getElementById("cards-container");
   const resultBody = document.querySelector("#result-table tbody");
-  const row = document.createElement("tr");
-  row.innerHTML = `<td>${participant}</td><td>${item}</td>`;
-  resultBody.appendChild(row);
-}
+  cardsContainer.innerHTML = "";
+  resultBody.innerHTML = "";
+  if (data) {
+    data.forEach(match => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-back">${match.participant}</div>
+          <div class="card-front">${match.participant} → ${match.item}</div>
+        </div>
+      `;
+      card.addEventListener("click", () => {
+        if (!card.classList.contains("flipped")) {
+          card.classList.add("flipped");
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${match.participant}</td><td>${match.item}</td>`;
+          resultBody.appendChild(row);
+        }
+      });
+      cardsContainer.appendChild(card);
+    });
+  }
+});
