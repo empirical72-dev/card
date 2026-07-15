@@ -1,5 +1,6 @@
 let participants = [];
 let items = [];
+let matches = [];
 
 function addParticipant() {
   const input = document.getElementById("participant-input");
@@ -59,6 +60,7 @@ function removeItem(index) {
 function resetAll() {
   participants = [];
   items = [];
+  matches = [];
   document.getElementById("participants-container").innerHTML = "";
   document.getElementById("items-container").innerHTML = "";
   document.getElementById("cards-container").innerHTML = "";
@@ -68,39 +70,47 @@ function resetAll() {
 function shuffleAndMatch() {
   if (participants.length === 0 || items.length === 0) return;
 
-  // shuffle items
+  // 항목 섞기
   const shuffled = [...items];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  // match participants with items
+  // 참가자와 항목 매칭
+  matches = participants.map((p, i) => ({
+    participant: p,
+    item: shuffled[i % shuffled.length]
+  }));
+
   const cardsContainer = document.getElementById("cards-container");
   cardsContainer.innerHTML = "";
-  const resultBody = document.querySelector("#result-table tbody");
-  resultBody.innerHTML = "";
+  document.querySelector("#result-table tbody").innerHTML = "";
 
-  participants.forEach((p, i) => {
-    const item = shuffled[i % shuffled.length];
-
-    // 카드 생성
+  matches.forEach((match) => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
       <div class="card-inner">
-        <div class="card-front"></div>
-        <div class="card-back">${p} → ${item}</div>
+        <!-- 뒷면: 트럼프 무늬 + 참가자 이름 -->
+        <div class="card-back">${match.participant}</div>
+        <!-- 앞면: 참가자 이름 + 항목 -->
+        <div class="card-front">${match.participant} → ${match.item}</div>
       </div>
     `;
     card.addEventListener("click", () => {
-      card.classList.toggle("flipped");
+      if (!card.classList.contains("flipped")) {
+        card.classList.add("flipped");
+        addResultRow(match.participant, match.item);
+      }
     });
     cardsContainer.appendChild(card);
-
-    // 결과 표 추가
-    const row = document.createElement("tr");
-    row.innerHTML = `<td>${p}</td><td>${item}</td>`;
-    resultBody.appendChild(row);
   });
+}
+
+function addResultRow(participant, item) {
+  const resultBody = document.querySelector("#result-table tbody");
+  const row = document.createElement("tr");
+  row.innerHTML = `<td>${participant}</td><td>${item}</td>`;
+  resultBody.appendChild(row);
 }
