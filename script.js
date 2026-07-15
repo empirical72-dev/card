@@ -89,8 +89,8 @@ function shuffleAndMatch() {
     card.className = "card";
     card.innerHTML = `
       <div class="card-inner">
-        <div class="card-front">${p}</div>
-        <div class="card-back">${item}</div>
+        <div class="card-front"></div>
+        <div class="card-back">${p} → ${item}</div>
       </div>
     `;
     card.addEventListener("click", () => {
