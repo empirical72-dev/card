@@ -2,8 +2,12 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
   margin: 20px;
-  background-color: #000;
-  color: #fff;
+  background-color: #000; /* 검은색 배경 */
+  color: #fff; /* 흰색 글씨 */
+}
+
+h1, h2 {
+  margin-bottom: 15px;
 }
 
 .input-row, .control-row {
@@ -14,7 +18,7 @@ body {
 }
 
 input, button {
-  height: 40px;
+  height: 40px; /* 행 높이 동일 */
   padding: 0 10px;
   border-radius: 6px;
   border: none;
@@ -43,7 +47,7 @@ button:hover {
   border: 1px solid #fff;
   border-radius: 6px;
   padding: 0 12px;
-  height: 40px;
+  height: 40px; /* 버튼과 동일 높이 */
   display: flex;
   align-items: center;
   background: #222;
@@ -97,19 +101,23 @@ button:hover {
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  color: #000;
+  color: #fff;
   background-size: cover;
 }
 
 /* 뒷면: 트럼프 무늬 + 참가자 이름 */
 .card-back {
   background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/5a/Playing_card_back_01.svg');
+  background-size: cover;
+  flex-direction: column;
 }
 
 /* 앞면: 참가자 이름 + 항목 */
 .card-front {
   background-color: #fff3e0;
+  color: #000;
   transform: rotateY(180deg);
+  flex-direction: column;
 }
 
 table {
@@ -120,8 +128,8 @@ table {
 
 th, td {
   border: 1px solid #fff;
-  padding: 8px;
-  height: 40px;
+  padding: 6px; /* 행 높이 줄임 */
+  height: 30px; /* 버튼보다 조금 낮게 */
   text-align: center;
-  width: 50%;
+  width: 50%; /* 균등 분할 */
 }

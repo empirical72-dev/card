@@ -93,9 +93,15 @@ function shuffleAndMatch() {
     card.innerHTML = `
       <div class="card-inner">
         <!-- 뒷면: 트럼프 무늬 + 참가자 이름 -->
-        <div class="card-back">${match.participant}</div>
+        <div class="card-back">
+          <div style="background:rgba(0,0,0,0.5); padding:5px; border-radius:6px;">
+            ${match.participant}
+          </div>
+        </div>
         <!-- 앞면: 참가자 이름 + 항목 -->
-        <div class="card-front">${match.participant} → ${match.item}</div>
+        <div class="card-front">
+          ${match.participant} → ${match.item}
+        </div>
       </div>
     `;
     card.addEventListener("click", () => {
