@@ -1,130 +1,108 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
-
-// Firebase 프로젝트 설정 (본인 프로젝트 값으로 교체)
+// Firebase 초기화 (자신의 Firebase 설정으로 교체)
 const firebaseConfig = {
-  apiKey: "AIzaSyAi9Rfv4Erq0bVd46aVLqQqSyF0EdFglVQ",
+  apiKey: "YOUR_API_KEY",
   authDomain: "card-game-cec92.firebaseapp.com",
   databaseURL: "https://card-game-cec92-default-rtdb.firebaseio.com",
   projectId: "card-game-cec92",
-  storageBucket: "card-game-cec92.firebasestorage.app",
-  messagingSenderId: "20914790996",
-  appId: "1:20914790996:web:1a3962d2402d5c5d2c83c1"
+  storageBucket: "card-game-cec92.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
+firebase.initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const database = firebase.database();
 
-// 참가자 추가 → DB 저장
-window.addParticipant = function() {
-  const input = document.getElementById("participant-input");
-  const name = input.value.trim();
-  if (!name) return;
-  push(ref(db, "participants"), { name });
-  input.value = "";
-};
-
-// 항목 추가 → DB 저장
-window.addItem = function() {
-  const input = document.getElementById("item-input");
-  const countInput = document.getElementById("item-count");
-  const name = input.value.trim();
-  const count = parseInt(countInput.value);
-  if (!name || count < 1) return;
-  let items = [];
-  for (let i = 0; i < count; i++) items.push(name);
-  set(ref(db, "items"), items);
-  input.value = "";
-  countInput.value = 1;
-};
-
-// 전체 리셋
-window.resetAll = function() {
-  set(ref(db, "participants"), null);
-  set(ref(db, "items"), null);
-  set(ref(db, "results"), null);
-};
-
-// Admin 실행 → 결과 저장
-window.shuffleAndMatch = function() {
-  onValue(ref(db, "participants"), snapshot => {
-    const participantsData = snapshot.val();
-    if (!participantsData) return;
-    const participants = Object.values(participantsData).map(p => p.name);
-
-    onValue(ref(db, "items"), snapshot2 => {
-      const itemsData = snapshot2.val();
-      if (!itemsData) return;
-      const shuffled = [...itemsData];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      const results = participants.map((p, i) => ({
-        participant: p,
-        item: shuffled[i % shuffled.length]
-      }));
-      set(ref(db, "results"), results);
-    }, { onlyOnce: true });
-  }, { onlyOnce: true });
-};
-
-// 참가자 목록 실시간 반영
-onValue(ref(db, "participants"), snapshot => {
-  const data = snapshot.val();
-  const container = document.getElementById("participants-container");
-  container.innerHTML = "";
-  if (data) {
-    Object.values(data).forEach(p => {
-      const div = document.createElement("div");
-      div.className = "list-item";
-      div.textContent = p.name;
-      container.appendChild(div);
-    });
+/* ---------------- 참가자 입력 ---------------- */
+function addParticipant(name) {
+  if (name.trim() !== "") {
+    database.ref("participants").push(name);
   }
-});
+}
 
-// 항목 목록 실시간 반영
-onValue(ref(db, "items"), snapshot => {
-  const data = snapshot.val();
-  const container = document.getElementById("items-container");
-  container.innerHTML = "";
-  if (data) {
-    data.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "list-item";
-      div.textContent = item;
-      container.appendChild(div);
-    });
-  }
-});
+function displayParticipants() {
+  database.ref("participants").on("value", snapshot => {
+    const data = snapshot.val();
+    const list = document.getElementById("participantList");
+    list.innerHTML = "";
 
-// 결과 실시간 반영 → 카드 생성
-onValue(ref(db, "results"), snapshot => {
-  const data = snapshot.val();
-  const cardsContainer = document.getElementById("cards-container");
-  const resultBody = document.querySelector("#result-table tbody");
-  cardsContainer.innerHTML = "";
-  resultBody.innerHTML = "";
-  if (data) {
-    data.forEach(match => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="card-inner">
-          <div class="card-back">${match.participant}</div>
-          <div class="card-front">${match.participant} → ${match.item}</div>
-        </div>
-      `;
-      card.addEventListener("click", () => {
-        if (!card.classList.contains("flipped")) {
-          card.classList.add("flipped");
-          const row = document.createElement("tr");
-          row.innerHTML = `<td>${match.participant}</td><td>${match.item}</td>`;
-          resultBody.appendChild(row);
-        }
+    if (data) {
+      Object.values(data).forEach(participant => {
+        const li = document.createElement("li");
+        li.textContent = participant;
+        list.appendChild(li);
       });
-      cardsContainer.appendChild(card);
-    });
+    }
+  });
+}
+
+/* ---------------- 항목 입력 ---------------- */
+function addItem(itemName) {
+  if (itemName.trim() !== "") {
+    database.ref("items").push(itemName);
   }
+}
+
+function displayItems() {
+  database.ref("items").on("value", snapshot => {
+    const data = snapshot.val();
+    const list = document.getElementById("itemList");
+    list.innerHTML = "";
+
+    if (data) {
+      Object.values(data).forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        list.appendChild(li);
+      });
+    }
+  });
+}
+
+/* ---------------- 게임 실행 ---------------- */
+function runGame() {
+  database.ref("participants").once("value", participantSnap => {
+    const participants = participantSnap.val() ? Object.values(participantSnap.val()) : [];
+
+    database.ref("items").once("value", itemSnap => {
+      const items = itemSnap.val() ? Object.values(itemSnap.val()) : [];
+
+      const resultTable = document.querySelector("#resultTable tbody");
+      resultTable.innerHTML = "";
+
+      // 참가자와 항목 매칭
+      participants.forEach((participant, index) => {
+        const item = items[index % items.length]; // 항목 순환 매칭
+        const row = document.createElement("tr");
+
+        const tdName = document.createElement("td");
+        tdName.textContent = participant;
+
+        const tdItem = document.createElement("td");
+        tdItem.textContent = item;
+
+        row.appendChild(tdName);
+        row.appendChild(tdItem);
+        resultTable.appendChild(row);
+      });
+    });
+  });
+}
+
+/* ---------------- 이벤트 연결 ---------------- */
+document.getElementById("participantButton").addEventListener("click", () => {
+  const input = document.getElementById("participantInput").value;
+  addParticipant(input);
+  document.getElementById("participantInput").value = "";
 });
+
+document.getElementById("addButton").addEventListener("click", () => {
+  const input = document.getElementById("itemInput").value;
+  addItem(input);
+  document.getElementById("itemInput").value = "";
+});
+
+document.getElementById("runButton").addEventListener("click", runGame);
+
+/* ---------------- 초기화 ---------------- */
+displayParticipants();
+displayItems();
