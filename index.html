@@ -11,25 +11,38 @@
 
     <!-- 참가자 등록 -->
     <section class="participant-section">
-      <h2>참가자 등록</h2>
-      <input type="text" id="participantInput" placeholder="이름 입력">
-      <button id="participantButton">등록</button>
-      <div id="participantList" class="inline-list"></div>
+      <h2>
+        참가자 등록
+        <input type="text" id="participantInput" placeholder="이름 입력">
+        <button id="participantButton">등록</button>
+      </h2>
+      <div id="participantList" class="inline-list">Empty</div>
     </section>
 
     <!-- 항목 입력 -->
     <section class="item-section">
-      <h2>항목 입력</h2>
-      <input type="text" id="itemInput" placeholder="항목 입력">
-      <button id="addButton">추가</button>
-      <div id="itemList" class="inline-list"></div>
+      <h2>
+        항목 입력
+        <input type="text" id="itemInput" placeholder="항목 입력">
+        <button id="addButton">추가</button>
+      </h2>
+      <div id="itemList" class="inline-list">Empty</div>
     </section>
 
     <!-- 게임 실행 -->
     <section class="game-section">
-      <h2>게임 실행</h2>
-      <button id="runButton">실행</button>
+      <h2>
+        게임 실행
+        <button id="runButton">실행</button>
+      </h2>
       <div id="cardArea" class="card-area"></div>
+    </section>
+
+    <!-- QR 코드 삽입 -->
+    <section class="qr-section">
+      <h2>참여 QR 코드</h2>
+      <p>아래 QR을 스캔해서 참여하세요</p>
+      <img src="qr.png" alt="참여 QR 코드" class="qr-image">
     </section>
   </div>
 
@@ -48,7 +61,6 @@
       appId: "1:20914790996:web:1a3962d2402d5c5d2c83c1"
     };
 
-    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 

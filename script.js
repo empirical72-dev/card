@@ -30,6 +30,8 @@ function displayParticipants() {
         span.appendChild(delBtn);
         list.appendChild(span);
       });
+    } else {
+      list.textContent = "Empty"; // 참가자가 없을 때 표시
     }
   });
 }
@@ -60,6 +62,8 @@ function displayItems() {
         span.appendChild(delBtn);
         list.appendChild(span);
       });
+    } else {
+      list.textContent = "Empty"; // 항목이 없을 때 표시
     }
   });
 }
@@ -75,6 +79,11 @@ function runGame() {
 
     const cardArea = document.getElementById("cardArea");
     cardArea.innerHTML = "";
+
+    if (participants.length === 0 || items.length === 0) {
+      cardArea.textContent = "참가자와 항목을 먼저 등록하세요!";
+      return;
+    }
 
     participants.forEach((participant, index) => {
       const item = items[index % items.length] || "항목 없음";
