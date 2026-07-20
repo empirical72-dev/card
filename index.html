@@ -16,7 +16,7 @@
         <input type="text" id="participantInput" placeholder="이름 입력">
         <button id="participantButton">등록</button>
       </h2>
-      <div id="participantList" class="inline-list">Empty</div>
+      <div id="participantList" class="inline-list"></div>
     </section>
 
     <!-- 항목 입력 -->
@@ -24,9 +24,10 @@
       <h2>
         항목 입력
         <input type="text" id="itemInput" placeholder="항목 입력">
+        <input type="number" id="itemCount" placeholder="개수" min="1" style="width:60px;">
         <button id="addButton">추가</button>
       </h2>
-      <div id="itemList" class="inline-list">Empty</div>
+      <div id="itemList" class="inline-list"></div>
     </section>
 
     <!-- 게임 실행 -->
@@ -34,6 +35,7 @@
       <h2>
         게임 실행
         <button id="runButton">실행</button>
+        <button id="resetButton">전체 리셋</button>
       </h2>
       <div id="cardArea" class="card-area"></div>
     </section>
@@ -46,7 +48,7 @@
     </section>
   </div>
 
-  <!-- Firebase SDK 초기화 (v9 모듈 방식) -->
+  <!-- Firebase SDK 초기화 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
     import { getDatabase } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
@@ -63,8 +65,6 @@
 
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
-
-    // script.js에서 사용할 수 있도록 전역에 노출
     window.database = database;
   </script>
 

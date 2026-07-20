@@ -1,4 +1,3 @@
-/* 기본 레이아웃 */
 body {
   font-family: "Segoe UI", Arial, sans-serif;
   background-color: #f4f6f9;
@@ -14,10 +13,10 @@ body {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center; /* 전체 가운데 정렬 */
 }
 
 h1 {
-  text-align: center;
   color: #2c3e50;
   margin-bottom: 30px;
 }
@@ -25,17 +24,21 @@ h1 {
 h2 {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   color: #34495e;
   margin-top: 20px;
   margin-bottom: 10px;
 }
 
-/* 입력창과 버튼 */
-h2 input[type="text"] {
+h2 input[type="text"], h2 input[type="number"] {
   width: 180px;
   padding: 6px;
   font-size: 14px;
+}
+
+h2 input[type="number"] {
+  width: 60px;
 }
 
 h2 button {
@@ -52,12 +55,12 @@ h2 button:hover {
   background-color: #2980b9;
 }
 
-/* 한 줄 나열 리스트 */
 .inline-list {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
+  justify-content: center;
 }
 
 .inline-list span {
@@ -68,7 +71,6 @@ h2 button:hover {
   align-items: center;
 }
 
-/* 삭제 버튼 */
 .delete-btn {
   margin-left: 8px;
   background: #e74c3c;
@@ -81,23 +83,21 @@ h2 button:hover {
   font-size: 14px;
   display: flex;
   align-items: center;
-  justify-content: center; /* 가로/세로 중앙 정렬 */
+  justify-content: center;
 }
 
 .delete-btn:hover {
   background: #c0392b;
 }
 
-/* 카드 영역 */
 .card-area {
   display: flex;
   flex-wrap: wrap;
-  gap: 30px; /* 카드 간격 */
+  gap: 30px;
   margin-top: 20px;
   justify-content: center;
 }
 
-/* 카드 스타일 */
 .card {
   width: 140px;
   height: 180px;
@@ -127,27 +127,23 @@ h2 button:hover {
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 20px; /* 글씨 크기 확대 */
   text-align: center;
   padding: 10px;
 }
 
-/* 뒷면: 참가자 이름 */
 .card-back {
   background: #3498db;
   color: #fff;
 }
 
-/* 앞면: 참가자 + 항목 */
 .card-front {
   background: #ecf0f1;
   color: #2c3e50;
   transform: rotateY(180deg);
 }
 
-/* QR 이미지 */
 .qr-section {
-  text-align: center;
   margin-top: 30px;
 }
 

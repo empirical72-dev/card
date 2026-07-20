@@ -1,10 +1,8 @@
-// Firebase v9 모듈 방식 import
-import { ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+import { ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
 
-// HTML에서 window.database로 노출한 DB 객체 가져오기
 const db = window.database;
 
-/* ---------------- 참가자 입력 ---------------- */
+/* 참가자 입력 */
 function addParticipant(name) {
   if (name.trim() !== "") {
     push(ref(db, "participants"), name);
@@ -30,16 +28,16 @@ function displayParticipants() {
         span.appendChild(delBtn);
         list.appendChild(span);
       });
-    } else {
-      list.textContent = "Empty"; // 참가자가 없을 때 표시
     }
   });
 }
 
-/* ---------------- 항목 입력 ---------------- */
-function addItem(itemName) {
-  if (itemName.trim() !== "") {
-    push(ref(db, "items"), itemName);
+/* 항목 입력 */
+function addItem(itemName, count) {
+  if (itemName.trim() !== "" && count > 0) {
+    for (let i = 0; i < count; i++) {
+      push(ref(db, "items"), itemName);
+    }
   }
 }
 
@@ -62,20 +60,29 @@ function displayItems() {
         span.appendChild(delBtn);
         list.appendChild(span);
       });
-    } else {
-      list.textContent = "Empty"; // 항목이 없을 때 표시
     }
   });
 }
 
-/* ---------------- 게임 실행 ---------------- */
+/* 랜덤 셔플 */
+function shuffle(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+
+/* 게임 실행 */
 function runGame() {
   Promise.all([
     new Promise(resolve => onValue(ref(db, "participants"), snap => resolve(snap.val()), { onlyOnce: true })),
     new Promise(resolve => onValue(ref(db, "items"), snap => resolve(snap.val()), { onlyOnce: true }))
   ]).then(([participantsData, itemsData]) => {
     const participants = participantsData ? Object.values(participantsData) : [];
-    const items = itemsData ? Object.values(itemsData) : [];
+    let items = itemsData ? Object.values(itemsData) : [];
 
     const cardArea = document.getElementById("cardArea");
     cardArea.innerHTML = "";
@@ -84,6 +91,9 @@ function runGame() {
       cardArea.textContent = "참가자와 항목을 먼저 등록하세요!";
       return;
     }
+
+    // 항목 랜덤 셔플
+    items = shuffle(items);
 
     participants.forEach((participant, index) => {
       const item = items[index % items.length] || "항목 없음";
@@ -96,24 +106,30 @@ function runGame() {
 
       const back = document.createElement("div");
       back.className = "card-back";
-      back.textContent = participant; // 뒷면: 참가자 이름
+      back.textContent = participant;
 
       const front = document.createElement("div");
       front.className = "card-front";
-      front.textContent = `${participant} → ${item}`; // 앞면: 참가자 + 항목
+      front.textContent = `${participant} → ${item}`;
 
       inner.appendChild(back);
       inner.appendChild(front);
       card.appendChild(inner);
 
-      // 카드 클릭 시 flip
       card.addEventListener("click", () => inner.classList.toggle("flipped"));
       cardArea.appendChild(card);
     });
   });
 }
 
-/* ---------------- 이벤트 연결 ---------------- */
+/* 전체 리셋 */
+function resetAll() {
+  set(ref(db, "participants"), null);
+  set(ref(db, "items"), null);
+  document.getElementById("cardArea").innerHTML = "";
+}
+
+/* 이벤트 연결 */
 document.getElementById("participantButton").addEventListener("click", () => {
   const input = document.getElementById("participantInput").value;
   addParticipant(input);
@@ -122,12 +138,15 @@ document.getElementById("participantButton").addEventListener("click", () => {
 
 document.getElementById("addButton").addEventListener("click", () => {
   const input = document.getElementById("itemInput").value;
-  addItem(input);
+  const count = parseInt(document.getElementById("itemCount").value) || 1;
+  addItem(input, count);
   document.getElementById("itemInput").value = "";
+  document.getElementById("itemCount").value = "";
 });
 
 document.getElementById("runButton").addEventListener("click", runGame);
+document.getElementById("resetButton").addEventListener("click", resetAll);
 
-/* ---------------- 초기화 ---------------- */
+/* 초기화 */
 displayParticipants();
 displayItems();
