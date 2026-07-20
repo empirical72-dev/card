@@ -2,23 +2,19 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>Card Game</title>
+  <title>카드 게임</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>카드 게임</h1>
 
-    <!-- 참가자 입력 -->
+    <!-- 참가자 등록 -->
     <section class="participant-section">
       <h2>참가자 등록</h2>
       <input type="text" id="participantInput" placeholder="이름 입력">
       <button id="participantButton">등록</button>
-      <ul id="participantList"></ul>
+      <div id="participantList" class="inline-list"></div>
     </section>
 
     <!-- 항목 입력 -->
@@ -26,25 +22,41 @@
       <h2>항목 입력</h2>
       <input type="text" id="itemInput" placeholder="항목 입력">
       <button id="addButton">추가</button>
-      <ul id="itemList"></ul>
+      <div id="itemList" class="inline-list"></div>
     </section>
 
-    <!-- 실행 버튼 -->
-    <section class="admin-section">
+    <!-- 게임 실행 -->
+    <section class="game-section">
       <h2>게임 실행</h2>
       <button id="runButton">실행</button>
-      <table id="resultTable">
-        <thead>
-          <tr>
-            <th>참가자</th>
-            <th>항목</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div id="cardArea" class="card-area"></div>
     </section>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Firebase SDK 초기화 (v9 모듈 방식) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAi9Rfv4Erq0bVd46aVLqQqSyF0EdFglVQ",
+      authDomain: "card-game-cec92.firebaseapp.com",
+      databaseURL: "https://card-game-cec92-default-rtdb.firebaseio.com",
+      projectId: "card-game-cec92",
+      storageBucket: "card-game-cec92.firebasestorage.app",
+      messagingSenderId: "20914790996",
+      appId: "1:20914790996:web:1a3962d2402d5c5d2c83c1"
+    };
+
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // script.js에서 사용할 수 있도록 전역에 노출
+    window.database = database;
+  </script>
+
+  <!-- 앱 로직 -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>

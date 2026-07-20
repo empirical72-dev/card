@@ -1,35 +1,34 @@
-// Firebase 초기화 (자신의 Firebase 설정으로 교체)
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "card-game-cec92.firebaseapp.com",
-  databaseURL: "https://card-game-cec92-default-rtdb.firebaseio.com",
-  projectId: "card-game-cec92",
-  storageBucket: "card-game-cec92.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-firebase.initializeApp(firebaseConfig);
+// Firebase v9 모듈 방식 import
+import { ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
 
-const database = firebase.database();
+// HTML에서 window.database로 노출한 DB 객체 가져오기
+const db = window.database;
 
 /* ---------------- 참가자 입력 ---------------- */
 function addParticipant(name) {
   if (name.trim() !== "") {
-    database.ref("participants").push(name);
+    push(ref(db, "participants"), name);
   }
 }
 
 function displayParticipants() {
-  database.ref("participants").on("value", snapshot => {
+  onValue(ref(db, "participants"), snapshot => {
     const data = snapshot.val();
     const list = document.getElementById("participantList");
     list.innerHTML = "";
 
     if (data) {
-      Object.values(data).forEach(participant => {
-        const li = document.createElement("li");
-        li.textContent = participant;
-        list.appendChild(li);
+      Object.entries(data).forEach(([key, participant]) => {
+        const span = document.createElement("span");
+        span.textContent = participant;
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "X";
+        delBtn.className = "delete-btn";
+        delBtn.addEventListener("click", () => remove(ref(db, "participants/" + key)));
+
+        span.appendChild(delBtn);
+        list.appendChild(span);
       });
     }
   });
@@ -38,21 +37,28 @@ function displayParticipants() {
 /* ---------------- 항목 입력 ---------------- */
 function addItem(itemName) {
   if (itemName.trim() !== "") {
-    database.ref("items").push(itemName);
+    push(ref(db, "items"), itemName);
   }
 }
 
 function displayItems() {
-  database.ref("items").on("value", snapshot => {
+  onValue(ref(db, "items"), snapshot => {
     const data = snapshot.val();
     const list = document.getElementById("itemList");
     list.innerHTML = "";
 
     if (data) {
-      Object.values(data).forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        list.appendChild(li);
+      Object.entries(data).forEach(([key, item]) => {
+        const span = document.createElement("span");
+        span.textContent = item;
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "X";
+        delBtn.className = "delete-btn";
+        delBtn.addEventListener("click", () => remove(ref(db, "items/" + key)));
+
+        span.appendChild(delBtn);
+        list.appendChild(span);
       });
     }
   });
@@ -60,30 +66,40 @@ function displayItems() {
 
 /* ---------------- 게임 실행 ---------------- */
 function runGame() {
-  database.ref("participants").once("value", participantSnap => {
-    const participants = participantSnap.val() ? Object.values(participantSnap.val()) : [];
+  Promise.all([
+    new Promise(resolve => onValue(ref(db, "participants"), snap => resolve(snap.val()), { onlyOnce: true })),
+    new Promise(resolve => onValue(ref(db, "items"), snap => resolve(snap.val()), { onlyOnce: true }))
+  ]).then(([participantsData, itemsData]) => {
+    const participants = participantsData ? Object.values(participantsData) : [];
+    const items = itemsData ? Object.values(itemsData) : [];
 
-    database.ref("items").once("value", itemSnap => {
-      const items = itemSnap.val() ? Object.values(itemSnap.val()) : [];
+    const cardArea = document.getElementById("cardArea");
+    cardArea.innerHTML = "";
 
-      const resultTable = document.querySelector("#resultTable tbody");
-      resultTable.innerHTML = "";
+    participants.forEach((participant, index) => {
+      const item = items[index % items.length] || "항목 없음";
 
-      // 참가자와 항목 매칭
-      participants.forEach((participant, index) => {
-        const item = items[index % items.length]; // 항목 순환 매칭
-        const row = document.createElement("tr");
+      const card = document.createElement("div");
+      card.className = "card";
 
-        const tdName = document.createElement("td");
-        tdName.textContent = participant;
+      const inner = document.createElement("div");
+      inner.className = "card-inner";
 
-        const tdItem = document.createElement("td");
-        tdItem.textContent = item;
+      const back = document.createElement("div");
+      back.className = "card-back";
+      back.textContent = participant; // 뒷면: 참가자 이름
 
-        row.appendChild(tdName);
-        row.appendChild(tdItem);
-        resultTable.appendChild(row);
-      });
+      const front = document.createElement("div");
+      front.className = "card-front";
+      front.textContent = `${participant} → ${item}`; // 앞면: 참가자 + 항목
+
+      inner.appendChild(back);
+      inner.appendChild(front);
+      card.appendChild(inner);
+
+      // 카드 클릭 시 flip
+      card.addEventListener("click", () => inner.classList.toggle("flipped"));
+      cardArea.appendChild(card);
     });
   });
 }
